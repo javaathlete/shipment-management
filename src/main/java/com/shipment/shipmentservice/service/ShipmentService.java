@@ -13,6 +13,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import com.shipment.shipmentservice.dto.CreateShipmentRequest;
 import com.shipment.shipmentservice.dto.ShipmentResponse;
+import com.shipment.shipmentservice.dto.ShipmentStatusHistoryResponse;
 import com.shipment.shipmentservice.dto.UpdateShipmentRequest;
 import com.shipment.shipmentservice.entity.Shipment;
 import com.shipment.shipmentservice.entity.ShipmentStatus;
@@ -41,6 +42,33 @@ public class ShipmentService {
 		this.shipmentRepository = shipmentRepository;
 		this.shipmentNumberTrackingGenerator = shipmentNumberTrackingGenerator;
 		this.historyRepository = historyRepository;
+	}
+
+	@Transactional
+	public List<ShipmentStatusHistoryResponse> getShipmentStatusHistory(Long shipmentId) {
+		
+		Shipment shipment= shipmentRepository.findById(shipmentId)
+		                  .orElseThrow(()-> new ShipmentNotFoundException(shipmentId));
+		
+		List<ShipmentStatusHistory> shipmentStatusHistory = historyRepository
+				                          .findByShipmentShipmentIdOrderByChangedAtAsc(shipmentId);
+		
+		return  shipmentStatusHistory.stream().map(this::mapToShipmentStatusHistory).toList();
+		
+		
+	}
+	
+	
+
+	private ShipmentStatusHistoryResponse mapToShipmentStatusHistory(ShipmentStatusHistory shipmentStatusHistory) {
+		ShipmentStatusHistoryResponse historyResponse = new ShipmentStatusHistoryResponse();
+		
+		
+		historyResponse.setOldStatus(shipmentStatusHistory.getOldStatus());
+		historyResponse.setNewStatus(shipmentStatusHistory.getNewStatus());
+		historyResponse.setChangedAt(shipmentStatusHistory.getChangedAt());
+		
+		return historyResponse;
 	}
 
 	@Transactional
@@ -75,16 +103,12 @@ public class ShipmentService {
 
 	@Transactional
 	public List<ShipmentResponse> createBulkRecords(List<CreateShipmentRequest> bulkRequest) {
-
 		List<Shipment> shipment = bulkRequest.stream().map(this::createBulkShipmentEntites).toList();
-
 		List<Shipment> shipRecords = shipmentRepository.saveAll(shipment);
-
 		return shipRecords.stream().map(this::mapToResponse).toList();
 	}
 
 	public List<ShipmentResponse> getAllShipmentRecords() {
-
 		List<Shipment> shipmentList = shipmentRepository.findAll();
 		return shipmentList.stream().map(this::mapToResponse).toList();
 	}
@@ -95,15 +119,29 @@ public class ShipmentService {
 		Shipment shipment = shipmentRepository.findById(shipId)
 				.orElseThrow(() -> new ShipmentNotFoundException(shipId));
 
-		ShipmentStatus existingShipmentStatus = shipment.getShipmentStatus();
-		validateShipmentStatus(existingShipmentStatus, newStatus);
+		ShipmentStatus oldStatus = shipment.getShipmentStatus();
+		validateShipmentStatus(oldStatus, newStatus);
 
 		shipment.setShipmentStatus(newStatus);
 		shipment.setUpdatedAt(LocalDateTime.now());
 
 		Shipment saveUpdatedStatusShipment = shipmentRepository.save(shipment);
-
+		saveStatusHistory(saveUpdatedStatusShipment,oldStatus,newStatus);
+		
 		return mapToResponse(saveUpdatedStatusShipment);
+	}
+
+	private void saveStatusHistory(Shipment saveUpdatedStatusShipment, ShipmentStatus oldStatus,
+			ShipmentStatus newStatus) {
+		ShipmentStatusHistory history = new ShipmentStatusHistory();
+		
+		history.setShipment(saveUpdatedStatusShipment);
+		history.setOldStatus(oldStatus);
+		history.setNewStatus(newStatus);
+		history.setChangedAt(LocalDateTime.now());
+		
+		historyRepository.save(history);
+		
 	}
 
 	@Transactional

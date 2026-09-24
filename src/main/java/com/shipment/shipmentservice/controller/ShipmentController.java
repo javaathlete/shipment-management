@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.shipment.shipmentservice.dto.CreateShipmentRequest;
 import com.shipment.shipmentservice.dto.ShipmentResponse;
+import com.shipment.shipmentservice.dto.ShipmentStatusHistoryResponse;
 import com.shipment.shipmentservice.dto.UpdateShipmentRequest;
 import com.shipment.shipmentservice.dto.UpdateShipmentStatusRequest;
 import com.shipment.shipmentservice.entity.ShipmentStatus;
@@ -129,4 +130,23 @@ public class ShipmentController {
 		return ResponseEntity.ok().body(respoPage);
 
 	}
+//----------------------------------------------------------------------------------------------------------	
+	
+//Shipment Status History
+	
+@GetMapping("/shipmentStatus/{shipmentId}")
+public ResponseEntity<List<ShipmentStatusHistoryResponse>> getShipmentStatusHistory(@PathVariable Long shipmentId ) {
+	List<ShipmentStatusHistoryResponse> shipmentStatusHistoryResp=shipmentService.getShipmentStatusHistory(shipmentId);
+	return ResponseEntity.ok().body(shipmentStatusHistoryResp);
+}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
