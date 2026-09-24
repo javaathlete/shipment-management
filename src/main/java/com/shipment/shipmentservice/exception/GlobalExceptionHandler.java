@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
 	    ErrorResponse errorResponse = new ErrorResponse(
 	            LocalDateTime.now(),
 	            HttpStatus.CONFLICT.value(),
-	            "SHIPMENT_CANNOT_BE_CANCELLED",
+	            exception.getErrorMessage(),
 	            exception.getMessage(),
 	            request.getRequestURI(),
 	            null

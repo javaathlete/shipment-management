@@ -16,5 +16,7 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long>, JpaSp
 	
 	List<Shipment> findByCustomerId(Long customerId);
 
+	//void delete(Long shipmentId);
+
 
 }

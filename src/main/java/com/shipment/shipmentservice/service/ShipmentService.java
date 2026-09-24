@@ -151,7 +151,7 @@ public class ShipmentService {
 				.orElseThrow(() -> new ShipmentNotFoundException(shipmentId));
 
 		if (shipment.getShipmentStatus() != ShipmentStatus.CREATED) {
-			throw new ShipmentCancletionException(shipment.getShipmentStatus());
+			throw new ShipmentCancletionException("Cannot be cancelled...",shipment.getShipmentStatus());
 		}
 
 		shipment.setShipmentStatus(ShipmentStatus.CANCELLED);
@@ -363,6 +363,22 @@ public class ShipmentService {
 		shipment.setUpdatedAt(now);
 		return shipment;
 
+	}
+@Transactional
+	public void deleteShipment(Long shipmentId) {
+		Shipment shipment = shipmentRepository.findById(shipmentId).orElseThrow(()->
+		              new ShipmentIdNotFoundException(shipmentId));
+		
+		if(shipment.getShipmentStatus()!=ShipmentStatus.CREATED) {
+			throw new ShipmentCancletionException("This Shipment cannot be deleted because it is in "+shipment.getShipmentStatus()+"States, It should be in:: ",ShipmentStatus.CREATED);
+		}
+		
+		
+		List<ShipmentStatusHistory> deletedEntity = historyRepository.findByShipmentShipmentIdOrderByChangedAtAsc(shipmentId);
+		historyRepository.deleteAll(deletedEntity);
+		
+		shipmentRepository.delete(shipment);
+		
 	}
 
 }

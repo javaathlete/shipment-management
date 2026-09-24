@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -134,13 +135,19 @@ public class ShipmentController {
 	
 //Shipment Status History
 	
-@GetMapping("/shipmentStatus/{shipmentId}")
+@GetMapping("/shipmentStatus/{shipmentId}")//http://localhost:8081/api/v1/shipments/shipmentStatus/8055/8002/8056...
 public ResponseEntity<List<ShipmentStatusHistoryResponse>> getShipmentStatusHistory(@PathVariable Long shipmentId ) {
 	List<ShipmentStatusHistoryResponse> shipmentStatusHistoryResp=shipmentService.getShipmentStatusHistory(shipmentId);
 	return ResponseEntity.ok().body(shipmentStatusHistoryResp);
 }
 	
-	
+// Delete shipment if shipment is in CREATED State
+
+@DeleteMapping("/delete/{shipmentId}")
+public ResponseEntity deleteShipment(@PathVariable Long shipmentId) {
+	shipmentService.deleteShipment(shipmentId);
+	return ResponseEntity.noContent().build();
+}
 	
 	
 	

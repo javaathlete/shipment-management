@@ -4,8 +4,17 @@ import com.shipment.shipmentservice.entity.ShipmentStatus;
 
 public class ShipmentCancletionException extends RuntimeException {
 
-	public ShipmentCancletionException(ShipmentStatus shipmentStatus) {
-		super("Shipment cannot be cancled when status is: "+shipmentStatus);
+	private final String errorMessage;
+
+	public ShipmentCancletionException(String errorMessage, ShipmentStatus shipmentStatus) {
+		super(errorMessage + "  " + shipmentStatus);
+		this.errorMessage = errorMessage;
 	}
+
+	public String getErrorMessage() {
+		return errorMessage+""+ShipmentStatus.CREATED;
+	}
+
+	
 	
 }
