@@ -38,6 +38,8 @@ public class IdempotencyKey {
 	@Column(name="CREATED_AT" , nullable = false)
 	private LocalDateTime createdAt;
 	
+	@Column(name="REQUEST_HASH" , nullable = false)
+	private String requestHash;
 	
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "shipment_id", nullable = false)

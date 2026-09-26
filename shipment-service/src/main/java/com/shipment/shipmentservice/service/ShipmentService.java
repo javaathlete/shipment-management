@@ -28,6 +28,7 @@ import com.shipment.shipmentservice.repository.IdempotencyKeyRepository;
 import com.shipment.shipmentservice.repository.ShipmentRepository;
 import com.shipment.shipmentservice.repository.ShipmentStatusHistoryRepository;
 import com.shipment.shipmentservice.specification.ShipmentSpecification;
+import com.shipment.shipmentservice.util.RequestHashUtil;
 import com.shipment.shipmentservice.util.ShipmentNumberTrackingGenerator;
 
 import jakarta.transaction.Transactional;
@@ -53,20 +54,34 @@ public class ShipmentService {
 	@Transactional
 	public ShipmentResponse createShipment(CreateShipmentRequest request,String idempotentKey) {
 
+		
 		Optional<IdempotencyKey> existingKey = idempotencyKeyRepository.findByIdempotencyKey(idempotentKey);
 		
 		if(existingKey.isPresent()) {
+			
+			if(!existingKey.get().getRequestHash().equals(RequestHashUtil.generateHash(request))) {
+				throw new IllegalStateException("Idempotency key has already been used with a different request");
+			}
+			
 			return mapToResponse(existingKey.get().getShipment());
 		}
-		
+// save new shipment record		
 		Shipment shipment = createShipmentEntites(request);
 	    Shipment shipmentRecords = shipmentRepository.save(shipment);// save in shipment table
-	    
+// save status history	    
 	    ShipmentStatusHistory shipmentStatusHistory = saveShipmentStatusHistory(shipmentRecords);
 	    
 	   historyRepository.save(shipmentStatusHistory);// save in shipment History table
-
-		return mapToResponse(shipmentRecords);
+// Idempotent key operation
+	   
+	   IdempotencyKey key = new IdempotencyKey();
+	   key.setIdempotencyKey(idempotentKey);
+	   key.setShipment(shipmentRecords);
+	   key.setCreatedAt(shipmentRecords.getCreatedAt());
+	   key.setRequestHash(RequestHashUtil.generateHash(request));
+	   idempotencyKeyRepository.save(key);
+	   
+	return mapToResponse(shipmentRecords);
 
 	}
 
