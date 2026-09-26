@@ -31,80 +31,65 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
-	
+
 	@ExceptionHandler(ShipmentIdNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleShipmentNotFoundException(ShipmentIdNotFoundException exception, HttpServletRequest request) {
+	public ResponseEntity<ErrorResponse> handleShipmentNotFoundException(ShipmentIdNotFoundException exception,
+			HttpServletRequest request) {
 
-	    ErrorResponse errorResponse = new ErrorResponse(
-	            LocalDateTime.now(),
-	            HttpStatus.NOT_FOUND.value(),
-	            "SHIPMENT_NOT_FOUND",
-	            exception.getMessage(),
-	            request.getRequestURI(),
-	            null
-	    );
+		ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(),
+				"SHIPMENT_NOT_FOUND", exception.getMessage(), request.getRequestURI(), null);
 
-	    return ResponseEntity
-	            .status(HttpStatus.NOT_FOUND)
-	            .body(errorResponse);
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 	}
 
-	
 	@ExceptionHandler(InvalidShipmentStatusTransitionException.class)
-	public ResponseEntity<ErrorResponse> handleInvalidShipmentStatusTransitionException(InvalidShipmentStatusTransitionException exception, HttpServletRequest request) {
-		ErrorResponse errorResponse = new ErrorResponse(
-	            LocalDateTime.now(),
-	            HttpStatus.CONFLICT.value(),
-	            "INVALID_STATUS_TRANSITION",
-	            exception.getMessage(),
-	            request.getRequestURI(),
-	            null
-	    );
+	public ResponseEntity<ErrorResponse> handleInvalidShipmentStatusTransitionException(
+			InvalidShipmentStatusTransitionException exception, HttpServletRequest request) {
+		ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(),
+				"INVALID_STATUS_TRANSITION", exception.getMessage(), request.getRequestURI(), null);
 
-	    return ResponseEntity
-	            .status(HttpStatus.CONFLICT)
-	            .body(errorResponse);
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
 	}
-	
+
 	@ExceptionHandler(ShipmentCancletionException.class)
-	public ResponseEntity<ErrorResponse> handleShipmentCancellationException(
-			ShipmentCancletionException exception,
-	        HttpServletRequest request) {
+	public ResponseEntity<ErrorResponse> handleShipmentCancellationException(ShipmentCancletionException exception,
+			HttpServletRequest request) {
 
-	    ErrorResponse errorResponse = new ErrorResponse(
-	            LocalDateTime.now(),
-	            HttpStatus.CONFLICT.value(),
-	            exception.getErrorMessage(),
-	            exception.getMessage(),
-	            request.getRequestURI(),
-	            null
-	    );
+		ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(),
+				exception.getErrorMessage(), exception.getMessage(), request.getRequestURI(), null);
 
-	    return ResponseEntity
-	            .status(HttpStatus.CONFLICT)
-	            .body(errorResponse);
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
 	}
-	
+
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
-	        MethodArgumentTypeMismatchException exception,
-	        HttpServletRequest request) {
+			MethodArgumentTypeMismatchException exception, HttpServletRequest request) {
 
-	    String message =
-	            "Invalid value '" + exception.getValue()
-	            + "' for parameter '" + exception.getName() + "'";
+		String message = "Invalid value '" + exception.getValue() + "' for parameter '" + exception.getName() + "'";
 
-	    ErrorResponse errorResponse = new ErrorResponse(
-	            LocalDateTime.now(),
-	            HttpStatus.BAD_REQUEST.value(),
-	            "INVALID_REQUEST_PARAMETER",
-	            message,
-	            request.getRequestURI(),
-	            null
-	    );
+		ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(),
+				"INVALID_REQUEST_PARAMETER", message, request.getRequestURI(), null);
 
-	    return ResponseEntity
-	            .status(HttpStatus.BAD_REQUEST)
-	            .body(errorResponse);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+
+	@ExceptionHandler(IdempotencyKeyReuseException.class)
+	public ResponseEntity<ErrorResponse> handleIdempotencyKeyReuseException(IdempotencyKeyReuseException exception,
+			HttpServletRequest request) {
+
+		ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(),
+				exception.getIdempotentErrorMsg(), exception.getMessage(), request.getRequestURI(), null);
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+	}
+	
+	@ExceptionHandler(InvalidIdempotentKeyException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidIdempotentKeyException(InvalidIdempotentKeyException exception,
+			HttpServletRequest request) {
+
+		ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(),
+				exception.getMessage(), exception.getMessage(), request.getRequestURI(), null);
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
 	}
 }

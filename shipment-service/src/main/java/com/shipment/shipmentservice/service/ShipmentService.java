@@ -20,6 +20,8 @@ import com.shipment.shipmentservice.entity.IdempotencyKey;
 import com.shipment.shipmentservice.entity.Shipment;
 import com.shipment.shipmentservice.entity.ShipmentStatus;
 import com.shipment.shipmentservice.entity.ShipmentStatusHistory;
+import com.shipment.shipmentservice.exception.IdempotencyKeyReuseException;
+import com.shipment.shipmentservice.exception.InvalidIdempotentKeyException;
 import com.shipment.shipmentservice.exception.InvalidShipmentStatusTransitionException;
 import com.shipment.shipmentservice.exception.ShipmentCancletionException;
 import com.shipment.shipmentservice.exception.ShipmentIdNotFoundException;
@@ -54,13 +56,19 @@ public class ShipmentService {
 	@Transactional
 	public ShipmentResponse createShipment(CreateShipmentRequest request,String idempotentKey) {
 
+		if(idempotentKey==null || idempotentKey.isBlank()) {
+			throw new InvalidIdempotentKeyException("Idempotent-key should not be blank or null");
+		}
+		if(idempotentKey.length()>100) {
+			throw new InvalidIdempotentKeyException("Length of Idempotent-key should not be greater then 100 character/letter");
+		}
 		
 		Optional<IdempotencyKey> existingKey = idempotencyKeyRepository.findByIdempotencyKey(idempotentKey);
 		
 		if(existingKey.isPresent()) {
 			
 			if(!existingKey.get().getRequestHash().equals(RequestHashUtil.generateHash(request))) {
-				throw new IllegalStateException("Idempotency key has already been used with a different request");
+				throw new IdempotencyKeyReuseException("Idempotency key has already been used with a different request");
 			}
 			
 			return mapToResponse(existingKey.get().getShipment());
