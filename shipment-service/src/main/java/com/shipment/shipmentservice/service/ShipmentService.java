@@ -3,6 +3,7 @@ package com.shipment.shipmentservice.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,6 +16,7 @@ import com.shipment.shipmentservice.dto.CreateShipmentRequest;
 import com.shipment.shipmentservice.dto.ShipmentResponse;
 import com.shipment.shipmentservice.dto.ShipmentStatusHistoryResponse;
 import com.shipment.shipmentservice.dto.UpdateShipmentRequest;
+import com.shipment.shipmentservice.entity.IdempotencyKey;
 import com.shipment.shipmentservice.entity.Shipment;
 import com.shipment.shipmentservice.entity.ShipmentStatus;
 import com.shipment.shipmentservice.entity.ShipmentStatusHistory;
@@ -22,6 +24,7 @@ import com.shipment.shipmentservice.exception.InvalidShipmentStatusTransitionExc
 import com.shipment.shipmentservice.exception.ShipmentCancletionException;
 import com.shipment.shipmentservice.exception.ShipmentIdNotFoundException;
 import com.shipment.shipmentservice.exception.ShipmentNotFoundException;
+import com.shipment.shipmentservice.repository.IdempotencyKeyRepository;
 import com.shipment.shipmentservice.repository.ShipmentRepository;
 import com.shipment.shipmentservice.repository.ShipmentStatusHistoryRepository;
 import com.shipment.shipmentservice.specification.ShipmentSpecification;
@@ -35,14 +38,44 @@ public class ShipmentService {
 	private final ShipmentRepository shipmentRepository;
 	private final ShipmentNumberTrackingGenerator shipmentNumberTrackingGenerator;
 	private final ShipmentStatusHistoryRepository historyRepository;
+	private final IdempotencyKeyRepository idempotencyKeyRepository;
 
 	public ShipmentService(ShipmentRepository shipmentRepository,
 			ShipmentNumberTrackingGenerator shipmentNumberTrackingGenerator,
-			ShipmentStatusHistoryRepository historyRepository) {
+			ShipmentStatusHistoryRepository historyRepository,
+			IdempotencyKeyRepository idempotencyKeyRepository) {
 		this.shipmentRepository = shipmentRepository;
 		this.shipmentNumberTrackingGenerator = shipmentNumberTrackingGenerator;
 		this.historyRepository = historyRepository;
+		this.idempotencyKeyRepository = idempotencyKeyRepository;
 	}
+	
+	@Transactional
+	public ShipmentResponse createShipment(CreateShipmentRequest request,String idempotentKey) {
+
+		Optional<IdempotencyKey> existingKey = idempotencyKeyRepository.findByIdempotencyKey(idempotentKey);
+		
+		if(existingKey.isPresent()) {
+			return mapToResponse(existingKey.get().getShipment());
+		}
+		
+		Shipment shipment = createShipmentEntites(request);
+	    Shipment shipmentRecords = shipmentRepository.save(shipment);// save in shipment table
+	    
+	    ShipmentStatusHistory shipmentStatusHistory = saveShipmentStatusHistory(shipmentRecords);
+	    
+	   historyRepository.save(shipmentStatusHistory);// save in shipment History table
+
+		return mapToResponse(shipmentRecords);
+
+	}
+
+	public ShipmentResponse getShipmentById(Long shipmentId) {
+		Shipment shipment = shipmentRepository.findById(shipmentId)
+				.orElseThrow(() -> new ShipmentIdNotFoundException(shipmentId));
+		return mapToResponse(shipment);
+	}
+
 
 	@Transactional
 	public List<ShipmentStatusHistoryResponse> getShipmentStatusHistory(Long shipmentId) {
@@ -71,20 +104,7 @@ public class ShipmentService {
 		return historyResponse;
 	}
 
-	@Transactional
-	public ShipmentResponse createShipment(CreateShipmentRequest request) {
-
-		Shipment shipment = createShipmentEntites(request);
-	    Shipment shipmentRecords = shipmentRepository.save(shipment);// save in shipment table
-	    
-	    ShipmentStatusHistory shipmentStatusHistory = saveShipmentStatusHistory(shipmentRecords);
-	    
-	   historyRepository.save(shipmentStatusHistory);// save in shipment History table
-
-		return mapToResponse(shipmentRecords);
-
-	}
-
+	
 	private ShipmentStatusHistory saveShipmentStatusHistory(Shipment shipmentRecords) {
 		ShipmentStatusHistory shipmentStatusHistory = new ShipmentStatusHistory();
 		
@@ -95,11 +115,6 @@ public class ShipmentService {
 		return shipmentStatusHistory;
 	}
 
-	public ShipmentResponse getShipmentById(Long shipmentId) {
-		Shipment shipment = shipmentRepository.findById(shipmentId)
-				.orElseThrow(() -> new ShipmentIdNotFoundException(shipmentId));
-		return mapToResponse(shipment);
-	}
 
 	@Transactional
 	public List<ShipmentResponse> createBulkRecords(List<CreateShipmentRequest> bulkRequest) {

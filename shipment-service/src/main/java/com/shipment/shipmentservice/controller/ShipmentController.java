@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,9 +40,11 @@ public class ShipmentController {
 
 	@PostMapping
 	public ResponseEntity<ShipmentResponse> createShipment(
-			@Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
+			                		@Valid @RequestBody CreateShipmentRequest createShipmentRequest,
+			                		@RequestHeader("Idempotent-key") String idempotentKey) 
+	{
 
-		ShipmentResponse shipmentResponse = shipmentService.createShipment(createShipmentRequest);
+		ShipmentResponse shipmentResponse = shipmentService.createShipment(createShipmentRequest,idempotentKey);
 		return ResponseEntity.status(HttpStatus.CREATED).body(shipmentResponse);
 	}
 
