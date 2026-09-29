@@ -26,6 +26,8 @@ import com.shipment.shipmentservice.exception.InvalidShipmentStatusTransitionExc
 import com.shipment.shipmentservice.exception.ShipmentCancletionException;
 import com.shipment.shipmentservice.exception.ShipmentIdNotFoundException;
 import com.shipment.shipmentservice.exception.ShipmentNotFoundException;
+import com.shipment.shipmentservice.kafka.event.ShipmentCreatedEvent;
+import com.shipment.shipmentservice.kafka.producer.ShipmentEventProducer;
 import com.shipment.shipmentservice.repository.IdempotencyKeyRepository;
 import com.shipment.shipmentservice.repository.ShipmentRepository;
 import com.shipment.shipmentservice.repository.ShipmentStatusHistoryRepository;
@@ -38,19 +40,23 @@ import jakarta.transaction.Transactional;
 @Service
 public class ShipmentService {
 
+
 	private final ShipmentRepository shipmentRepository;
 	private final ShipmentNumberTrackingGenerator shipmentNumberTrackingGenerator;
 	private final ShipmentStatusHistoryRepository historyRepository;
 	private final IdempotencyKeyRepository idempotencyKeyRepository;
-
+	private final ShipmentEventProducer shipmentEventProducer;
+	
 	public ShipmentService(ShipmentRepository shipmentRepository,
 			ShipmentNumberTrackingGenerator shipmentNumberTrackingGenerator,
 			ShipmentStatusHistoryRepository historyRepository,
-			IdempotencyKeyRepository idempotencyKeyRepository) {
+			IdempotencyKeyRepository idempotencyKeyRepository,
+			ShipmentEventProducer shipmentEventProducer) {
 		this.shipmentRepository = shipmentRepository;
 		this.shipmentNumberTrackingGenerator = shipmentNumberTrackingGenerator;
 		this.historyRepository = historyRepository;
 		this.idempotencyKeyRepository = idempotencyKeyRepository;
+		this.shipmentEventProducer = shipmentEventProducer;
 	}
 	
 	@Transactional
@@ -88,6 +94,16 @@ public class ShipmentService {
 	   key.setCreatedAt(shipmentRecords.getCreatedAt());
 	   key.setRequestHash(RequestHashUtil.generateHash(request));
 	   idempotencyKeyRepository.save(key);
+	   
+// produces an kafka events
+	   ShipmentCreatedEvent event = new ShipmentCreatedEvent();
+	   event.setCustomerId(shipment.getCustomerId());
+	   event.setShipmentId(shipment.getShipmentId());
+	   event.setTrackingNumber(shipment.getTrackingNumber());
+	   event.setStatus(shipment.getShipmentStatus());
+	   event.setCreatedAt(shipment.getCreatedAt());
+	  
+	   shipmentEventProducer.sendShipmentCreatedEvents(event);
 	   
 	return mapToResponse(shipmentRecords);
 
