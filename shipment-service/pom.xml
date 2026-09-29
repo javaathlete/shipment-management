@@ -9,24 +9,12 @@
 		<version>4.1.0</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.shipment</groupId>
+	<groupId>com.bhgroup.shipment</groupId>
 	<artifactId>shipment-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>shipment-service</name>
 	<description>Shipment Management Microservice</description>
-	<url />
-	<licenses>
-		<license />
-	</licenses>
-	<developers>
-		<developer />
-	</developers>
-	<scm>
-		<connection />
-		<developerConnection />
-		<tag />
-		<url />
-	</scm>
+	
 	<properties>
 		<java.version>17</java.version>
 	</properties>
