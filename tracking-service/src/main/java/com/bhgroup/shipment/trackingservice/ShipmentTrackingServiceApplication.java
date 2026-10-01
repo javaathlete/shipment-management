@@ -8,6 +8,7 @@ public class ShipmentTrackingServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ShipmentTrackingServiceApplication.class, args);
+		System.out.println("Shipment-Tracking Microservice Started......");
 	}
 
 }

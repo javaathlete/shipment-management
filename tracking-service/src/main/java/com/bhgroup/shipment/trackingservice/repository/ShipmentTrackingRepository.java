@@ -6,8 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.bhgroup.shipment.trackingservice.entity.ShipmentTracking;
 
-public interface ShipmentTrackingRepository
-extends JpaRepository<ShipmentTracking, Long> {
+public interface ShipmentTrackingRepository extends JpaRepository<ShipmentTracking, Long> {
 
 Optional<ShipmentTracking> findByShipmentId(Long shipmentId);
 

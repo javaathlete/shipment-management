@@ -10,6 +10,12 @@ spring:
       username: ${DB_USERNAME}
       password: ${DB_PASSWORD}
       driver-class-name: ${DB_DRIVER_CLASS_NAME}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
   kafka:
     bootstrap-servers: 172.20.68.8:9092
     consumer:

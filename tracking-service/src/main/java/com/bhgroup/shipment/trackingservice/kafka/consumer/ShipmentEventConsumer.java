@@ -4,9 +4,16 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import com.bhgroup.shipment.trackingservice.kafka.event.ShipmentCreatedEvent;
+import com.bhgroup.shipment.trackingservice.service.TrackingService;
 
 @Component
 public class ShipmentEventConsumer {
+
+	private final TrackingService trackingService;
+	
+	public ShipmentEventConsumer(TrackingService trackingService) {
+		this.trackingService = trackingService;
+	}
 
 	@KafkaListener(
 		topics = "shipment-created",
@@ -15,10 +22,6 @@ public class ShipmentEventConsumer {
 	)
 	
 	public void consumeShipmentCreatedEvent(ShipmentCreatedEvent createdEvent) {
-		System.out.println("Customer Id: " +createdEvent.getCustomerId());
-		System.out.println("Shipment Number: "+createdEvent.getShipmentId());
-		System.out.println("Tracking Number :"+createdEvent.getTrackingNumber());
-		System.out.println("Ststus: "+createdEvent.getStatus());
-		System.out.println("Created At :"+createdEvent.getCreatedAt());
+		trackingService.createTracking(createdEvent);
 	}
 }

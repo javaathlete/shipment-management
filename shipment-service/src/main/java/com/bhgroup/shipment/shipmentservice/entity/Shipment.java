@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +22,16 @@ import lombok.Setter;
 public class Shipment {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(
+			strategy = GenerationType.SEQUENCE,
+			generator = "shipment_service_seq"
+			)
+	@SequenceGenerator(
+			name = "shipment_service_seq",
+	        sequenceName = "SHIPMENT_SERVICE_SEQ",
+	        allocationSize = 1
+	    )
+	
 	private Long shipmentId;
 
 	@Column(name = "CUSTOMER_ID", nullable = false)
