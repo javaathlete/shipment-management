@@ -1,5 +1,7 @@
 package com.bhgroup.shipment.trackingservice.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.bhgroup.shipment.trackingservice.entity.ShipmentTracking;
@@ -16,6 +18,14 @@ public class TrackingService {
 	}
 
 	public void createTracking(ShipmentCreatedEvent createdEvent) {
+		
+		Optional<ShipmentTracking> existingTracking = shipmentTrackingRepository.findByShipmentId(createdEvent.getShipmentId());
+		
+		if(existingTracking.isPresent()) {
+			return;
+		}
+		
+		
 		ShipmentTracking shipmentTracking = mapToEntity(createdEvent);
 		System.out.println(shipmentTracking.toString());
 		shipmentTrackingRepository.save(shipmentTracking);

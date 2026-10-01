@@ -22,15 +22,10 @@ public class KafkaConsumerConfig {
 		Map<String, Object> properties = new HashMap<>();
 
 		properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "172.20.68.8:9092");
-
 		properties.put(ConsumerConfig.GROUP_ID_CONFIG, "tracking-service-group");
-
 		properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
 		properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-
 		properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
-
 		
 		
 		JacksonJsonDeserializer<ShipmentCreatedEvent> deserializer = new JacksonJsonDeserializer<>(

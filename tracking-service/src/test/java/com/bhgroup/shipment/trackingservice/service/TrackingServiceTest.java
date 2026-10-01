@@ -1,9 +1,13 @@
 package com.bhgroup.shipment.trackingservice.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,14 +49,45 @@ public class TrackingServiceTest {
 		ArgumentCaptor<ShipmentTracking> captor = ArgumentCaptor.forClass(ShipmentTracking.class);
 
 		verify(shipmentTrackingRepository).save(captor.capture());
+		
+		verify(shipmentTrackingRepository).findByShipmentId(10302L);
 
+		verify(shipmentTrackingRepository).save(captor.capture());
+		
 		ShipmentTracking savedTracking = captor.getValue();
-
+		
 		assertEquals(10302L, savedTracking.getShipmentId());
 		assertEquals(911L, savedTracking.getCustomerId());
 		assertEquals("SHP20260929000023", savedTracking.getTrackingNumber());
 		assertEquals("CREATED", savedTracking.getStatus());
 		assertEquals(createdAt, savedTracking.getCreatedAt());
+	}
+
+	@Test
+	void shouldNoCreateDuplicateTracking() {
+
+		// Arrange
+		ShipmentCreatedEvent event = new ShipmentCreatedEvent();
+
+		event.setShipmentId(10302L);
+		event.setCustomerId(911L);
+		event.setTrackingNumber("SHP20260929000023");
+		event.setStatus("CREATED");
+		event.setCreatedAt(LocalDateTime.of(2026, 10, 01, 18, 31));
+
+		ShipmentTracking existingShipmentTracking = new ShipmentTracking();
+		existingShipmentTracking.setTrackingNumber("SHP20260929000023");
+
+		when(shipmentTrackingRepository.findByShipmentId(10302L)).thenReturn(Optional.of(existingShipmentTracking));
+
+		// Act
+		trackingService.createTracking(event);
+
+		// Assert
+		verify(shipmentTrackingRepository, never()).save(any(ShipmentTracking.class));
+
+		
+
 	}
 
 }
