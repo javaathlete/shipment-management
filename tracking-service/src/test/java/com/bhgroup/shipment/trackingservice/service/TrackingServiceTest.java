@@ -102,8 +102,7 @@ public class TrackingServiceTest {
 
 		when(shipmentTrackingRepository.findByShipmentId(10302L)).thenReturn(Optional.empty());
 
-		DataAccessException databaseException = new DataAccessException("Database unavailable") {
-		};
+		DataAccessException databaseException = new DataAccessException("Database unavailable") {};
 
 		when(shipmentTrackingRepository.save(any(ShipmentTracking.class))).thenThrow(databaseException);
 
