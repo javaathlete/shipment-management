@@ -19,11 +19,14 @@ import com.bhgroup.shipment.trackingservice.kafka.event.ShipmentCreatedEvent;
 @Configuration
 public class KafkaConsumerConfig {
 
+	@Value("${spring.kafka.bootstrap-servers}")
+	private String bootstrapServers;
+	
 	@Bean
 	public ConsumerFactory<String, ShipmentCreatedEvent> consumerFactory() {
 		Map<String, Object> properties = new HashMap<>();
 
-		properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "172.20.68.8:9092");
+		properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 		properties.put(ConsumerConfig.GROUP_ID_CONFIG, "tracking-service-group");
 		properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
